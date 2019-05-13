@@ -1,0 +1,64 @@
+version: "3"
+services:
+  backend:
+    build: ./
+    command: nodemon src/app.js
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_HOST: ${MYSQL_HOST}
+      REDIS_HOST: ${REDIS_HOST}
+      API_ENDPOINT: ${GEO_ENDPOINT}
+      API_TOKEN: ${GEO_KEY}
+      JSON_TOKEN_SECRET: ${JSON_TOKEN_CHECK}
+    volumes:
+      - .:/app
+    ports:
+      - 8080:8080
+    networks:
+      - consentweb
+    depends_on:
+      - mysql
+      - cache
+
+  mysql:
+    image: mysql
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    ports: 
+      - 33061:3306
+    networks:
+      - consentweb
+    volumes:
+      - cookiesdb:/var/lib/mysql
+    
+  cache:
+    image: redis
+    ports: 
+      - 6379:6379
+    networks: 
+      - consentweb
+    volumes:
+      - redis:/data
+    depends_on:
+      - mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_HOST=mysql
+    ports:
+      - 8081:80
+    depends_on:
+      - mysql
+    networks:
+      - consentweb
+
+volumes:
+  cookiesdb:
+  redis:
+networks: 
+  consentweb:
