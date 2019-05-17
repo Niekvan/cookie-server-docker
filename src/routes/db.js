@@ -2,79 +2,81 @@ const utils = require('../utils');
 const mysql = require('mysql');
 
 const updateDb = async (data, meta) => {
-    const results = {};
-    if (data.company === 'NULL') {
-      data.company = "'undefined'"
-    } else {
-      const cm = await query(
-        `INSERT INTO testcompany (name) SELECT * FROM (SELECT ${
-          data.company
-        }) AS tmp WHERE NOT EXISTS (SELECT id FROM testcompany WHERE name=${
-          data.company
-        })`
-      );
-      results.cm = cm
-    }
-    if (meta && meta.address) {
-      const l = await query(
-        `INSERT INTO testlocation (address, country, latitude, longtitude, type) SELECT * FROM (SELECT ${mysql.escape(
-          meta.address
-        )}, ${mysql.escape(meta.components.country_code)}, ${
-          meta.geometry.lat
-        }, ${meta.geometry.lng}, ${mysql.escape(
-          meta.components._type
-        )}) AS tmp WHERE NOT EXISTS (SELECT id from testlocation WHERE (address=${mysql.escape(
-          meta.address
-        )} AND latitude=${meta.geometry.lat} AND longtitude=${
-          meta.geometry.lng
-        } AND type=${mysql.escape(meta.components._type)}))`
-      );
-      const locationId = await query(
-        `SELECT id FROM testlocation WHERE address=${mysql.escape(
-          meta.address
-        )} AND country=${mysql.escape(
-          meta.components.country_code
-        )} AND latitude=${meta.geometry.lat} AND longtitude=${
-          meta.geometry.lng
-        } AND type=${mysql.escape(meta.components._type)}`
-      );
-      const d = await query(
-        `INSERT INTO testdomain (name, location_id, company_id) SELECT * FROM (SELECT ${
-          data.domain
-        }, ${locationId[0].id}, id FROM testcompany WHERE name=${
-          data.company
-        }) AS tmp WHERE NOT EXISTS (SELECT id FROM testdomain WHERE name=${
-          data.domain
-        })`
-      );
-      results.l = l;
-      results.d = d;
-    } else {
-      const d = await query(
-        `INSERT INTO testdomain (name, company_id) SELECT * FROM (SELECT ${
-          data.domain
-        }, id FROM testcompany WHERE name=${
-          data.company
-        }) AS tmp WHERE NOT EXISTS (SELECT id FROM testdomain WHERE name=${
-          data.domain
-        })`
-      );
-      results.d = d;
-    }
-    const s = await query(
-      `INSERT INTO testsubdomain (name, domain_id) SELECT * FROM (SELECT ${
-        data.sub_domain
-      }, id FROM testdomain WHERE name = ${
-        data.domain
-      }) AS tmp WHERE NOT EXISTS (SELECT id FROM testsubdomain WHERE name=${
-        data.sub_domain
+  const results = {};
+  if (data.company === 'NULL') {
+    data.company = "'undefined'";
+  } else {
+    const cm = await query(
+      `INSERT INTO testcompany (name) SELECT * FROM (SELECT ${
+        data.company
+      }) AS tmp WHERE NOT EXISTS (SELECT id FROM testcompany WHERE name=${
+        data.company
       })`
     );
-    const w = await query(
-      `INSERT INTO websites (name) SELECT(${data.website}) WHERE NOT EXISTS(SELECT id from websites WHERE name=${data.website})`
+    results.cm = cm;
+  }
+  if (meta && meta.address) {
+    const l = await query(
+      `INSERT INTO testlocation (address, country, latitude, longtitude, type) SELECT * FROM (SELECT ${mysql.escape(
+        meta.address
+      )}, ${mysql.escape(meta.components.country_code)}, ${
+        meta.geometry.lat
+      }, ${meta.geometry.lng}, ${mysql.escape(
+        meta.components._type
+      )}) AS tmp WHERE NOT EXISTS (SELECT id from testlocation WHERE (address=${mysql.escape(
+        meta.address
+      )} AND latitude=${meta.geometry.lat} AND longtitude=${
+        meta.geometry.lng
+      } AND type=${mysql.escape(meta.components._type)}))`
     );
-    const c = await query(
-      `INSERT INTO identifiercookie (name, value, identifier, subdomain_id, website_id) 
+    const locationId = await query(
+      `SELECT id FROM testlocation WHERE address=${mysql.escape(
+        meta.address
+      )} AND country=${mysql.escape(
+        meta.components.country_code
+      )} AND latitude=${meta.geometry.lat} AND longtitude=${
+        meta.geometry.lng
+      } AND type=${mysql.escape(meta.components._type)}`
+    );
+    const d = await query(
+      `INSERT INTO testdomain (name, location_id, company_id) SELECT * FROM (SELECT ${
+        data.domain
+      }, ${locationId[0].id}, id FROM testcompany WHERE name=${
+        data.company
+      }) AS tmp WHERE NOT EXISTS (SELECT id FROM testdomain WHERE name=${
+        data.domain
+      })`
+    );
+    results.l = l;
+    results.d = d;
+  } else {
+    const d = await query(
+      `INSERT INTO testdomain (name, company_id) SELECT * FROM (SELECT ${
+        data.domain
+      }, id FROM testcompany WHERE name=${
+        data.company
+      }) AS tmp WHERE NOT EXISTS (SELECT id FROM testdomain WHERE name=${
+        data.domain
+      })`
+    );
+    results.d = d;
+  }
+  const s = await query(
+    `INSERT INTO testsubdomain (name, domain_id) SELECT * FROM (SELECT ${
+      data.sub_domain
+    }, id FROM testdomain WHERE name = ${
+      data.domain
+    }) AS tmp WHERE NOT EXISTS (SELECT id FROM testsubdomain WHERE name=${
+      data.sub_domain
+    })`
+  );
+  const w = await query(
+    `INSERT INTO websites (name) SELECT(${
+      data.website
+    }) WHERE NOT EXISTS(SELECT id from websites WHERE name=${data.website})`
+  );
+  const c = await query(
+    `INSERT INTO identifiercookie (name, value, identifier, subdomain_id, website_id) 
         SELECT * FROM (
           SELECT ${data.cookie}, ${data.value}, ${data.id}, 
           (SELECT id FROM testsubdomain WHERE name=${data.sub_domain}), 
@@ -87,15 +89,15 @@ const updateDb = async (data, meta) => {
           AND (SELECT id from websites WHERE websites.name=${data.website})
           AND time_added=CURRENT_TIMESTAMP
         )`
-    );
-    return {
-      results: {
-        s,
-        c,
-        w,
-        ...results
-      }
-    };
+  );
+  return {
+    results: {
+      s,
+      c,
+      w,
+      ...results
+    }
+  };
 };
 
 const newEntry = async data => {
@@ -120,18 +122,18 @@ const getCookies = async identifier => {
     INNER JOIN testdomain d ON s.domain_id=d.id
     INNER JOIN testcompany cm ON d.company_id=cm.id
     LEFT join testlocation l ON d.location_id=l.id
-    WHERE c.identifier='${identifier}'`
-    const data = await query(sqlString)
-    return data
+    WHERE c.identifier='${identifier}'`;
+    const data = await query(sqlString);
+    return data;
   }
-  return { error: 'no identifier' }
-}
+  return { error: 'no identifier' };
+};
 
 const cookieEntries = async data => {
   const domain = data.domain;
-  const existing = await getAsync(domain)
+  const existing = await getAsync(domain);
   if (existing) {
-    utils.escapeObject(data)
+    utils.escapeObject(data);
     const c = await query(
       `INSERT INTO identifiercookie (name, value, identifier, subdomain_id) SELECT * FROM (SELECT ${
         data.cookie
@@ -145,12 +147,12 @@ const cookieEntries = async data => {
       results: {
         c
       }
-    }
+    };
   }
   return {
     results: 'no hierarchy'
-  }
-}
+  };
+};
 
 const processDomain = async cookieData => {
   const domain = cookieData.domain;
@@ -160,19 +162,77 @@ const processDomain = async cookieData => {
     const cacheData = JSON.parse(existing);
     cookieData.company = cacheData.company;
     if (!cacheData.company) {
-      console.log('cache empty')
-      const { results: entry } = await newEntry(cookieData)
-      return entry
+      console.log('cache empty');
+      const { results: entry } = await newEntry(cookieData);
+      return entry;
     }
     utils.escapeObject(cookieData);
     const { results: update } = await updateDb(cookieData, cacheData);
     return update;
   }
   console.log('new', domain);
-  const {
-    results: entry
-  } = await newEntry(cookieData);
+  const { results: entry } = await newEntry(cookieData);
   return entry;
+};
+
+const getConnections = async ({ type, entry }) => {
+  let selector;
+  switch (type) {
+    case 'visited':
+      selector = 'w';
+      break;
+    case 'connected':
+      selector = 'w';
+      break;
+    case 'companies':
+      selector = 'cm';
+      break;
+    case 'domains':
+      selector = 'd';
+      break;
+    case 'subDomains':
+      selector = 's';
+      break;
+    case 'cookies':
+      selector = 'c';
+      break;
+  }
+  try {
+    const data = await query(`SELECT c.name AS cookie, s.name AS subDomain, d.name AS domain, cm.name AS company, w.name AS visited 
+                              FROM duplicatecookies c, testsubdomain s, testdomain d, testcompany cm, websites w 
+                              WHERE c.subdomain_id=s.id 
+                                AND s.domain_id=d.id 
+                                AND d.company_id=cm.id 
+                                AND c.website_id=w.id
+                                AND ${selector}.name='${entry}'`);
+
+    const companies = data
+      .map(item => item.company)
+      .filter((item, index, array) => array.indexOf(item) === index);
+
+    let promises = [];
+    companies.forEach(company => {
+      promises.push(
+        query(`SELECT w.name AS connected FROM duplicatecookies c, testsubdomain s, testdomain d, testcompany cm, websites w
+                WHERE c.subdomain_id=s.id 
+                  AND s.domain_id=d.id 
+                  AND d.company_id=cm.id 
+                  AND c.website_id=w.id
+                  AND cm.name='${company}'
+                GROUP BY w.name`)
+      );
+    });
+
+    const connected = await Promise.all(promises);
+    const merged = [].concat.apply([], connected);
+
+    return {
+      connected: merged,
+      data
+    };
+  } catch (error) {
+    return error;
+  }
 };
 
 module.exports = {
@@ -180,5 +240,6 @@ module.exports = {
   newEntry,
   cookieEntries,
   processDomain,
-  getCookies
-}
+  getCookies,
+  getConnections
+};

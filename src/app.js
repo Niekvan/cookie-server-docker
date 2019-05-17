@@ -12,7 +12,7 @@ const whois = require('whois-json');
 const app = express();
 const port = 8080;
 
-app.use(morgan('dev'))
+app.use(morgan('dev'));
 app.use(bodyParser.json());
 
 // MYSQL
@@ -40,21 +40,25 @@ const client = redis.createClient({
 const getAsync = promisify(client.get).bind(client);
 const keysAsync = promisify(client.keys).bind(client);
 
-global.query = query
-global.client = client
-global.getAsync = getAsync
+global.query = query;
+global.client = client;
+global.getAsync = getAsync;
 
 app.get('/', (req, res, next) => {
   res.send("OK, we're online");
 });
 
-const protectedRoutes = express.Router()
+const protectedRoutes = express.Router();
 protectedRoutes.use(middleware.checkToken);
 app.use('/api', protectedRoutes);
 
+protectedRoutes.get('/', (req, res, next) => {
+  res.send('behind the api key check!');
+});
+
 protectedRoutes.post('/test', (req, res, next) => {
   res.send('passed middleware');
-})
+});
 
 protectedRoutes.get('/keys', async (req, res, next) => {
   const keys = await keysAsync('*');
@@ -63,14 +67,14 @@ protectedRoutes.get('/keys', async (req, res, next) => {
     return { data: JSON.parse(keyData), key };
   });
   Promise.all(data).then(completed => {
-    res.json(completed.filter(item => !item.data.company))
-  })
+    res.json(completed.filter(item => !item.data.company));
+  });
 });
 
 protectedRoutes.get('/whois/:domain', async (req, res, next) => {
-  const data = await whois(req.params.domain)
-  res.json(data)
-})
+  const data = await whois(req.params.domain);
+  res.json(data);
+});
 
 protectedRoutes.post('/', async (req, res, next) => {
   try {
@@ -82,8 +86,16 @@ protectedRoutes.post('/', async (req, res, next) => {
 });
 
 protectedRoutes.get('/cookies', async (req, res, next) => {
- const data = await dbRoutes.getCookies(req.headers['map-identifier'])
- res.json({ data })
-})
+  const data = await dbRoutes.getCookies(req.headers['map-identifier']);
+  res.json({ data });
+});
+
+protectedRoutes.get('/connections', async (req, res, next) => {
+  const data = await dbRoutes.getConnections({
+    type: req.query.type,
+    entry: req.query.entry
+  });
+  res.json(data);
+});
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
