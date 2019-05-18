@@ -1,14 +1,14 @@
-FROM node:11
+FROM keymetrics/pm2:latest-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
+COPY ecosystem.config.js ./
 
 RUN npm install
-RUN npm install -g nodemon
 
 COPY . .
 
-EXPOSE 8081
+EXPOSE 8080
 
-CMD nodemon src/app.js
+# CMD pm2-runtime start ecosystem.config.js

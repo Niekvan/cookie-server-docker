@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const middleware = require('./routes/middleware');
 const dbRoutes = require('./routes/db');
 const morgan = require('morgan');
+const helmet = require('helmet');
 
 const mysql = require('mysql');
 const redis = require('redis');
@@ -13,6 +14,7 @@ const app = express();
 const port = 8080;
 
 app.use(morgan('dev'));
+app.use(helmet());
 app.use(bodyParser.json());
 
 // MYSQL
