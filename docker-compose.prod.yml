@@ -1,0 +1,5 @@
+version: "3"
+  services:
+    backend:
+      volumes:
+        - /logs/api/access.log:/app/access.log
