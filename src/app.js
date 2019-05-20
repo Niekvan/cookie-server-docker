@@ -1,8 +1,10 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const middleware = require('./routes/middleware');
 const dbRoutes = require('./routes/db');
 const morgan = require('morgan');
+const fs = require('fs');
+const path = require('path');
+const untildify = require('untildify');
 const helmet = require('helmet');
 
 const mysql = require('mysql');
@@ -12,10 +14,14 @@ const whois = require('whois-json');
 
 const app = express();
 const port = 8080;
+// const accessLogStream = fs.createWriteStream(
+//   untildify('~/access.log')
+// );
+const accessLogStream = fs.createWriteStream(path.join(__dirname, '../access.log'));
+app.use(morgan('common', { stream: accessLogStream }, { flags: 'a' }));
 
-app.use(morgan('dev'));
 app.use(helmet());
-app.use(bodyParser.json());
+app.use(express.json());
 
 // MYSQL
 const connection = mysql.createConnection({
@@ -56,10 +62,6 @@ app.use('/api', protectedRoutes);
 
 protectedRoutes.get('/', (req, res, next) => {
   res.send('behind the api key check!');
-});
-
-protectedRoutes.post('/test', (req, res, next) => {
-  res.send('passed middleware');
 });
 
 protectedRoutes.get('/keys', async (req, res, next) => {
