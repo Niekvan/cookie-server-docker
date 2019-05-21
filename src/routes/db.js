@@ -1,5 +1,7 @@
 const utils = require('../utils');
 const mysql = require('mysql');
+// const cookiedb = 'duplicatecookies';
+const cookiedb = 'identifiercookie';
 
 const updateDb = async (data, meta) => {
   const results = {};
@@ -116,7 +118,7 @@ const newEntry = async data => {
 const getCookies = async identifier => {
   if (identifier) {
     const sqlString = `SELECT c.name AS cookie, c.value, s.name AS sub_domain, d.name AS domain, cm.name AS company, w.name AS website, l.country, l.latitude, l.longtitude
-    FROM duplicatecookies c 
+    FROM ${cookiedb} c 
     INNER JOIN testsubdomain s ON c.subdomain_id=s.id
     LEFT JOIN websites w ON c.website_id=w.id
     INNER JOIN testdomain d ON s.domain_id=d.id
@@ -199,7 +201,7 @@ const getConnections = async ({ type, entry }) => {
   }
   try {
     const data = await query(`SELECT c.name AS cookie, s.name AS subDomain, d.name AS domain, cm.name AS company, w.name AS visited 
-                              FROM duplicatecookies c, testsubdomain s, testdomain d, testcompany cm, websites w 
+                              FROM ${cookiedb} c, testsubdomain s, testdomain d, testcompany cm, websites w 
                               WHERE c.subdomain_id=s.id 
                                 AND s.domain_id=d.id 
                                 AND d.company_id=cm.id 
@@ -213,7 +215,7 @@ const getConnections = async ({ type, entry }) => {
     let promises = [];
     companies.forEach(company => {
       promises.push(
-        query(`SELECT w.name AS connected FROM duplicatecookies c, testsubdomain s, testdomain d, testcompany cm, websites w
+        query(`SELECT w.name AS connected, cm.name AS company FROM ${cookiedb} c, testsubdomain s, testdomain d, testcompany cm, websites w
                 WHERE c.subdomain_id=s.id 
                   AND s.domain_id=d.id 
                   AND d.company_id=cm.id 

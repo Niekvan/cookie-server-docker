@@ -15,7 +15,6 @@ services:
       JSON_TOKEN_SECRET: ${JSON_TOKEN_CHECK}
     volumes:
       - .:/app
-      - ~/nginxlogs/access.log:/app/access.log
     ports:
       - 8080:8080
     networks:

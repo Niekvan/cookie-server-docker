@@ -17,8 +17,12 @@ const port = 8080;
 // const accessLogStream = fs.createWriteStream(
 //   untildify('~/access.log')
 // );
-const accessLogStream = fs.createWriteStream(path.join(__dirname, '../access.log'));
-app.use(morgan('common', { stream: accessLogStream }, { flags: 'a' }));
+// if (process.env.NODE_ENV === 'production') {
+  const accessLogStream = fs.createWriteStream(path.join(__dirname, '../access.log'));
+  app.use(morgan('common', { stream: accessLogStream }, { flags: 'a' }));
+// } else {
+//   app.use(morgan('dev'))
+// }
 
 app.use(helmet());
 app.use(express.json());
