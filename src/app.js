@@ -59,7 +59,7 @@ const wss = new webSocket.Server({
 })
 
 wss.on('connection', ws => {
-  console.log('connection', ws);
+  ws.send('hi')
   ws.on('message', message => {
     console.log(message);
   })
