@@ -89,7 +89,6 @@ const updateDb = async (data, meta) => {
           AND name=${data.cookie} 
           AND identifier=${data.id} 
           AND (SELECT id from websites WHERE websites.name=${data.website})
-          AND time_added=CURRENT_TIMESTAMP
         )`
   );
   return {

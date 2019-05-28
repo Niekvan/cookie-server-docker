@@ -4,7 +4,6 @@ const dbRoutes = require('./routes/db');
 const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
-const untildify = require('untildify');
 const helmet = require('helmet');
 
 const mysql = require('mysql');
@@ -13,7 +12,6 @@ const { promisify } = require('util');
 const whois = require('whois-json');
 
 const app = express();
-const port = 8080;
 // const accessLogStream = fs.createWriteStream(
 //   untildify('~/access.log')
 // );
@@ -45,17 +43,19 @@ connection.connect(function(err) {
 });
 const query = promisify(connection.query).bind(connection);
 
-//REDIS
+// REDIS
 const client = redis.createClient({
   host: process.env.REDIS_HOST
 });
 const getAsync = promisify(client.get).bind(client);
 const keysAsync = promisify(client.keys).bind(client);
 
+// GLOBAL FUNCTIONS
 global.query = query;
 global.client = client;
 global.getAsync = getAsync;
 
+// ROUTES
 app.get('/', (req, res, next) => {
   res.send("OK, we're online");
 });
@@ -106,4 +106,4 @@ protectedRoutes.get('/connections', async (req, res, next) => {
   res.json(data);
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+module.exports = app
