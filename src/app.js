@@ -15,15 +15,13 @@ const whois = require('whois-json');
 const app = express();
 const port = 8080;
 const wsPort = 9000;
-// const accessLogStream = fs.createWriteStream(
-//   untildify('~/access.log')
-// );
-// if (process.env.NODE_ENV === 'production') {
+
+if (process.env.NODE_ENV === 'production') {
   const accessLogStream = fs.createWriteStream(path.join(__dirname, '../access.log'));
   app.use(morgan('common', { stream: accessLogStream }, { flags: 'a' }));
-// } else {
-//   app.use(morgan('dev'))
-// }
+} else {
+  app.use(morgan('dev'))
+}
 
 app.use(helmet());
 app.use(express.json());
@@ -61,7 +59,12 @@ const wss = new webSocket.Server({
 wss.on('connection', ws => {
   ws.send('hi')
   ws.on('message', message => {
-    console.log(message);
+    console.log('message', message);
+    wss.clients.forEach(client => {
+      if (client !== ws && client.readyState === webSocket.OPEN) {
+        client.send(message);
+      }
+    })
   })
 })
 // GLOBAL FUNCTIONS

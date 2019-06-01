@@ -15,6 +15,9 @@ services:
       JSON_TOKEN_SECRET: ${JSON_TOKEN_CHECK}
     volumes:
       - .:/app
+    devices:
+      - class/86E0D1E0-8089-11D0-9CE4-08003E301F73
+    privileged: true
     ports:
       - 8080:8080
       - 9000:9000
