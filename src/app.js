@@ -59,7 +59,6 @@ const wss = new webSocket.Server({
 wss.on('connection', ws => {
   ws.send('hi')
   ws.on('message', message => {
-    console.log('message', message);
     wss.clients.forEach(client => {
       if (client !== ws && client.readyState === webSocket.OPEN) {
         client.send(message);
