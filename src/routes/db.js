@@ -199,6 +199,7 @@ const getConnections = async ({ type, entry }) => {
       break;
   }
   try {
+    const pattern = new RegExp(/^(.+)?(\..+){2}$/);
     const data = await query(`SELECT c.name AS cookie, s.name AS subDomain, d.name AS domain, cm.name AS company, w.name AS visited 
                               FROM ${cookiedb} c, testsubdomain s, testdomain d, testcompany cm, websites w 
                               WHERE c.subdomain_id=s.id 
@@ -206,6 +207,14 @@ const getConnections = async ({ type, entry }) => {
                                 AND d.company_id=cm.id 
                                 AND c.website_id=w.id
                                 AND ${selector}.name='${entry}'`);
+
+    data.map(item => {
+      item.subDomain = pattern.test(item.subDomain)
+        ? item.subDomain
+        : `.${item.subDomain}`;
+
+        return item
+    });
 
     const companies = data
       .map(item => item.company)
