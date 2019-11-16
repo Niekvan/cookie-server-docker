@@ -46,7 +46,8 @@ const query = promisify(connection.query).bind(connection);
 
 // REDIS
 const client = redis.createClient({
-  host: process.env.REDIS_HOST
+  host: process.env.REDIS_HOST,
+  password: process.env.REDIS_PASSWORD
 });
 const getAsync = promisify(client.get).bind(client);
 const keysAsync = promisify(client.keys).bind(client);
